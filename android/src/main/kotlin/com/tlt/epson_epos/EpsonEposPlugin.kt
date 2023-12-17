@@ -209,6 +209,15 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     filter.portType = Discovery.PORTTYPE_TCP
     var resp = EpsonEposPrinterResult("onDiscoveryTCP", false)
     try {
+      var success = resp.toJSON()
+      when (success) {
+      is JSONObject -> {
+          success = JSONArray().apply{
+            put(success)
+          }
+        }
+      }
+      
       Discovery.start(context, filter, mDiscoveryListener)
       Handler(Looper.getMainLooper()).postDelayed({
         resp.success = true
