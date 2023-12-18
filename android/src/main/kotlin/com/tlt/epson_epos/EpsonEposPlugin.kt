@@ -196,7 +196,35 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       "USB" -> {
         onDiscoveryUSB(call, result)
       }
+
+      "BLUETOOTH" -> {
+        onDiscoveryBLUETOOTH(call, result)
+      }
       else -> result.notImplemented()
+    }
+  }
+
+
+  private fun onDiscoveryBLUETOOTH(@NonNull call: MethodCall, @NonNull result: Result) {
+    printers.clear()
+    var filter = FilterOption()
+    filter.portType = Discovery.PORTTYPE_BLUETOOTH
+    var resp = EpsonEposPrinterResult("onDiscoveryTCP", false)
+    try {
+      Discovery.start(context, filter, mDiscoveryListener)
+      Handler(Looper.getMainLooper()).postDelayed({
+        resp.success = true
+        resp.message = "Successfully!"
+        resp.content = printers
+        result.success(resp.toJSON())
+        stopDiscovery()
+      }, 7000)
+    } catch (e: Exception) {
+      Log.e("OnDiscoveryTCP", "Start not working ${call.method}");
+      e.printStackTrace()
+      resp.success = false
+      resp.message = "Error while search printer"
+      result.success(resp.toJSON())
     }
   }
 
