@@ -1,6 +1,7 @@
-import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
+
+import 'package:flutter/services.dart';
 
 import 'enums.dart';
 import 'helpers.dart';
@@ -14,14 +15,12 @@ class EpsonEPOS {
   static bool _isPrinterPlatformSupport({bool throwError = false}) {
     if (Platform.isAndroid) return true;
     if (throwError) {
-      throw PlatformException(
-          code: "platformNotSupported", message: "Device not supported");
+      throw PlatformException(code: "platformNotSupported", message: "Device not supported");
     }
     return false;
   }
 
-  static Future<List<EpsonPrinterModel>?> onDiscovery(
-      {EpsonEPOSPortType type = EpsonEPOSPortType.ALL}) async {
+  static Future<List<EpsonPrinterModel>?> onDiscovery({EpsonEPOSPortType type = EpsonEPOSPortType.ALL}) async {
     if (!_isPrinterPlatformSupport(throwError: true)) return null;
     String printType = _eposHelper.getPortType(type);
     final Map<String, dynamic> params = {"type": printType};
@@ -34,6 +33,7 @@ class EpsonEPOS {
         List<dynamic> prs = response.content;
         if (prs.length > 0) {
           return prs.map((e) {
+            print('model:${e['model']}');
             final modelName = e['model'];
             final modelSeries = _eposHelper.getSeries(modelName);
             return EpsonPrinterModel(
@@ -54,8 +54,7 @@ class EpsonEPOS {
     return [];
   }
 
-  static Future<dynamic> onPrint(
-      EpsonPrinterModel printer, List<Map<String, dynamic>> commands) async {
+  static Future<dynamic> onPrint(EpsonPrinterModel printer, List<Map<String, dynamic>> commands) async {
     final Map<String, dynamic> params = {
       "type": printer.type,
       "series": printer.series,
@@ -66,11 +65,7 @@ class EpsonEPOS {
   }
 
   static Future<dynamic> getPrinterSetting(EpsonPrinterModel printer) async {
-    final Map<String, dynamic> params = {
-      "type": printer.type,
-      "series": printer.series,
-      "target": printer.target
-    };
+    final Map<String, dynamic> params = {"type": printer.type, "series": printer.series, "target": printer.target};
     return await _channel.invokeMethod('getPrinterSetting', params);
   }
 
