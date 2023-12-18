@@ -425,7 +425,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     Log.d(logTag, "Found: ${deviceInfo?.deviceName}, ${deviceInfo?.target}")
     if (deviceInfo?.deviceName != null && deviceInfo?.deviceName != "") {
       var printer = EpsonEposPrinterInfo(deviceInfo.ipAddress,  deviceInfo.bdAddress , deviceInfo.macAddress,  deviceInfo.deviceName , deviceInfo.deviceType.toString(), deviceInfo.deviceType.toString()  , deviceInfo.target)
-      var printerIndex = printers.indexOfFirst { e -> e.ipAddress == deviceInfo.ipAddress }
+      var printerIndex = printers.indexOfFirst { e -> e?.ipAddress == deviceInfo?.ipAddress }
       if (printerIndex > -1) {
         printers[printerIndex] = printer
       } else {
