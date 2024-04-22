@@ -476,7 +476,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun connectPrinter(target: String, series: String): Boolean {
-        var printCons = getPrinterConstant(series)
+        val printCons = getPrinterConstant(series)
         if (mPrinter == null || mTarget != target) {
             mPrinter = Printer(printCons, 0, context)
             mTarget = target
