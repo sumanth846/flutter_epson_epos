@@ -55,7 +55,8 @@ data class EpsonEposPrinterResult(
     var type: String,
     var success: Boolean,
     var message: String? = null,
-    var content: Any? = null
+    var content: Any? = null,
+    var status: Any? = null
 ) : JSONConvertable
 
 /** EpsonEposPlugin */
