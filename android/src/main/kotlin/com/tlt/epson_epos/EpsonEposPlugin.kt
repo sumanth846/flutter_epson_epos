@@ -411,10 +411,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                     val isError = printerStatusError()
 
-                    if(isError != "Unknown error. Please check the power and communication status of the printer."){
+                    Log.d(logTag, "Status : $isError")
+                    if(!isError.trim().lowercase().equals("Unknown error. Please check the power and communication status of the printer.".trim().lowercase()) ){
                         resp.success = false
                         resp.message = isError
-                        Log.d(logTag, resp.toJSON());
+                        Log.d(logTag, resp.toJSON())
                     }else{
                         mPrinter!!.sendData(Printer.PARAM_DEFAULT)
                         Log.d(logTag, "Printed $target $series")
