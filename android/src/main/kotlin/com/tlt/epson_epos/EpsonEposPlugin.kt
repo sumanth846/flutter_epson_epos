@@ -204,7 +204,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 onDiscoveryUSB(call, result)
             }
 
-            "BLUETOOTH" -> {
+            "BT" -> {
                 onDiscoveryBLUETOOTH(call, result)
             }
 
@@ -217,7 +217,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         printers.clear()
         var filter = FilterOption()
         filter.portType = Discovery.PORTTYPE_BLUETOOTH
-        var resp = EpsonEposPrinterResult("onDiscoveryTCP", false)
+        var resp = EpsonEposPrinterResult("onDiscoveryBLUETOOTH", false)
         try {
             Discovery.start(context, filter, mDiscoveryListener)
             Handler(Looper.getMainLooper()).postDelayed({
@@ -406,17 +406,23 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
                 try {
                     val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
-                    val statusString: String = "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
-                    Log.d(
-                        logTag,
-                        "Printing $target $series | $statusString"
-                    )
-                    mPrinter!!.sendData(Printer.PARAM_DEFAULT)
-                    Log.d(logTag, "Printed $target $series")
+                    val statusString = "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
+                    Log.d(logTag, "Printing $target $series | $statusString")
 
-                    resp.success = true
-                    resp.message = "Printed $target $series | $statusString"
-                    Log.d(logTag, resp.toJSON())
+                    val isError = printerStatusError()
+
+                    if(isError != "Unknown error. Please check the power and communication status of the printer."){
+                        resp.success = false
+                        resp.message = isError
+                        Log.d(logTag, resp.toJSON());
+                    }else{
+                        mPrinter!!.sendData(Printer.PARAM_DEFAULT)
+                        Log.d(logTag, "Printed $target $series")
+                        resp.success = true
+                        resp.message = "Printed $target $series | $statusString"
+                        Log.d(logTag, resp.toJSON())
+                    }
+
                     result.success(resp.toJSON());
                 } catch (ex: Epos2Exception) {
                     ex.printStackTrace()
@@ -438,7 +444,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// FUNCTIONS
 
     private val mDiscoveryListener = DiscoveryListener { deviceInfo ->
-        Log.d(logTag, "Found: ${deviceInfo?.deviceName}, ${deviceInfo?.target}")
+        Log.d(logTag, "Found: ${deviceInfo?.deviceName}, ${deviceInfo?.target}, ${deviceInfo}")
         if (deviceInfo?.deviceName != null && deviceInfo?.deviceName != "") {
             var printer = EpsonEposPrinterInfo(
                 deviceInfo.ipAddress,
@@ -870,3 +876,5 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
 
 }
+
+
