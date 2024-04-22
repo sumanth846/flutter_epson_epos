@@ -406,16 +406,16 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
                 try {
                     val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
+                    val statusString: String = "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
                     Log.d(
                         logTag,
-                        "Printing $target $series Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}"
+                        "Printing $target $series $statusString"
                     )
                     mPrinter!!.sendData(Printer.PARAM_DEFAULT)
                     Log.d(logTag, "Printed $target $series")
 
                     resp.success = true
-                    resp.message = "Printed $target $series - online: ${statusInfo?.online}, cover: ${statusInfo?.coverOpen}, Paper: ${statusInfo?.paper}, ErrorSt: ${statusInfo?.errorStatus}"
-
+                    resp.message = "Printed $target $series  $statusString"
                     Log.d(logTag, resp.toJSON())
                     result.success(resp.toJSON());
                 } catch (ex: Epos2Exception) {
