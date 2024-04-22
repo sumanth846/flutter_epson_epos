@@ -414,7 +414,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     Log.d(logTag, "Printed $target $series")
 
                     resp.success = true
-                    resp.message = "Printed $target $series;  online: ${statusInfo?.online}, cover: ${statusInfo?.coverOpen}, Paper: ${statusInfo?.paper}, ErrorSt: ${statusInfo?.errorStatus}"
+                    resp.message = "Printed $target $series - online: ${statusInfo?.online}, cover: ${statusInfo?.coverOpen}, Paper: ${statusInfo?.paper}, ErrorSt: ${statusInfo?.errorStatus}"
 
                     Log.d(logTag, resp.toJSON())
                     result.success(resp.toJSON());
