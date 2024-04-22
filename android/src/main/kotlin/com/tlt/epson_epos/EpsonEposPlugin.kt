@@ -421,14 +421,16 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 } catch (ex: Epos2Exception) {
                     ex.printStackTrace()
                     Log.e(logTag, "sendData Error" + ex.errorStatus, ex)
+                    resp.success = false
+                    resp.message = printerStatusError()
                     disconnectPrinter()
                 }
             }
         } catch (e: Exception) {
-            mPrinter = null
             e.printStackTrace()
             resp.success = false
             resp.message = printerStatusError()
+            mPrinter = null
             result.success(resp.toJSON())
         }
     }
