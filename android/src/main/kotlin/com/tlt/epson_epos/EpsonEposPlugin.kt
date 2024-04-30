@@ -64,8 +64,9 @@ data class EpsonEposPrinterResult(
 ) : JSONConvertable
 
 /** EpsonEposPlugin */
-class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamHandler  {
+class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamHandler {
     private lateinit var channel: MethodChannel
+    private lateinit var eventChannel: EventChannel
     private var logTag: String = "Epson_ePOS"
     private lateinit var context: Context
     private lateinit var activity: Activity
@@ -73,20 +74,23 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
     private var mTarget: String? = null
     private var printers: MutableList<EpsonEposPrinterInfo> = ArrayList()
 
-
     private var eventSink: EventSink? = null
 
-    override fun onListen(arguments: Any?, events: EventSink?) {
-        eventSink = events
-    }
-
-    override fun onCancel(arguments: Any?) {
-        eventSink = null
-    }
 
     fun sendEvent(data: Any?) {
         eventSink?.success(data)
     }
+
+    override fun onListen(arguments: Any?, events: EventSink?) {
+        eventSink = events
+        eventSink.success("Event channel started")
+    }
+
+    override fun onCancel(arguments: Any?) {
+        eventSink = null
+        // Your code to stop sending events
+    }
+
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity;
@@ -105,6 +109,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "epson_epos_events");
+        eventChannel.setStreamHandler(this)
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "epson_epos")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
@@ -424,17 +430,22 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
                 sendEvent("native onGenerateCommand End")
                 try {
                     val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
-                    val statusString = "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
+                    val statusString =
+                        "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
                     Log.d(logTag, "Printing $target $series | $statusString")
 
                     val isError = printerStatusError()
 
                     Log.d(logTag, "Status : $isError")
-                    if(!isError.trim().lowercase().equals("Unknown error. Please check the power and communication status of the printer.".trim().lowercase()) ){
+                    if (!isError.trim().lowercase().equals(
+                            "Unknown error. Please check the power and communication status of the printer.".trim()
+                                .lowercase()
+                        )
+                    ) {
                         resp.success = false
                         resp.message = isError
                         Log.d(logTag, resp.toJSON())
-                    }else{
+                    } else {
                         sendEvent("native onPrint sendData")
                         mPrinter!!.sendData(Printer.PARAM_DEFAULT)
                         sendEvent("native onPrint sendData End")
