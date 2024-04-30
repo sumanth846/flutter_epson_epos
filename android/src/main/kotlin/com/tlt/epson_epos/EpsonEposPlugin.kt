@@ -20,6 +20,7 @@ import com.epson.epos2.printer.PrinterStatusInfo;
 import com.epson.epos2.printer.PrinterSettingListener
 import com.epson.epos2.printer.ReceiveListener
 
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -27,6 +28,9 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.EventChannel.EventSink
+import io.flutter.plugin.common.EventChannel.StreamHandler
 import java.lang.Exception
 import kotlin.collections.ArrayList
 import android.util.Base64
@@ -60,11 +64,7 @@ data class EpsonEposPrinterResult(
 ) : JSONConvertable
 
 /** EpsonEposPlugin */
-class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
-    /// The MethodChannel that will the communication between Flutter and native Android
-    ///
-    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-    /// when the Flutter Engine is detached from the Activity
+class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamHandler  {
     private lateinit var channel: MethodChannel
     private var logTag: String = "Epson_ePOS"
     private lateinit var context: Context
@@ -72,6 +72,21 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var mPrinter: Printer? = null
     private var mTarget: String? = null
     private var printers: MutableList<EpsonEposPrinterInfo> = ArrayList()
+
+
+    private var eventSink: EventSink? = null
+
+    override fun onListen(arguments: Any?, events: EventSink?) {
+        eventSink = events
+    }
+
+    override fun onCancel(arguments: Any?) {
+        eventSink = null
+    }
+
+    fun sendEvent(data: Any?) {
+        eventSink?.success(data)
+    }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity;
@@ -264,7 +279,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
 
     /**
-     * Discovery Printers via TCP/IP
+     * Discovery Printers via USB
      */
     private fun onDiscoveryUSB(@NonNull call: MethodCall, @NonNull result: Result) {
         printers.clear()
@@ -384,6 +399,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
      * Print
      */
     private fun onPrint(@NonNull call: MethodCall, @NonNull result: Result) {
+        sendEvent("native onPrint called")
         val type: String = call.argument<String>("type") as String
         val series: String = call.argument<String>("series") as String
         val target: String = call.argument<String>("target") as String
@@ -401,9 +417,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     mPrinter!!.clearCommandBuffer()
                 }
             } else {
+                sendEvent("native onGenerateCommand")
                 commands.forEach {
                     onGenerateCommand(it)
                 }
+                sendEvent("native onGenerateCommand End")
                 try {
                     val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
                     val statusString = "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
@@ -417,13 +435,16 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         resp.message = isError
                         Log.d(logTag, resp.toJSON())
                     }else{
+                        sendEvent("native onPrint sendData")
                         mPrinter!!.sendData(Printer.PARAM_DEFAULT)
+                        sendEvent("native onPrint sendData End")
                         Log.d(logTag, "Printed $target $series")
                         resp.success = true
                         resp.message = "Printed $target $series | $statusString"
                         Log.d(logTag, resp.toJSON())
                     }
 
+                    sendEvent("native onPrint End")
                     result.success(resp.toJSON());
                 } catch (ex: Epos2Exception) {
                     ex.printStackTrace()
@@ -437,7 +458,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             e.printStackTrace()
             resp.success = false
             resp.message = printerStatusError()
-            mPrinter = null
+            disconnectPrinter()
             result.success(resp.toJSON())
         }
     }
@@ -484,11 +505,13 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
         try {
+            sendEvent("native Connecting Printer")
             val status: PrinterStatusInfo? = mPrinter!!.status;
             if (status?.online != Printer.TRUE) {
                 mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
             }
             mPrinter!!.clearCommandBuffer()
+            sendEvent("native Connected Printer")
         } catch (e: Epos2Exception) {
             disconnectPrinter()
             Log.e(logTag, "Connect Error ${e.errorStatus}", e)
