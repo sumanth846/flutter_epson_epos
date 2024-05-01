@@ -382,6 +382,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
                         settingList,
                         mPrinterSettingListener
                     )
+
+                    resp.success = true
+                    resp.message = "Success"
+                    result.success(resp.toJSON())
                 } catch (ex: Exception) {
                     Log.e(logTag, "sendData Error", ex)
                     ex.printStackTrace()
