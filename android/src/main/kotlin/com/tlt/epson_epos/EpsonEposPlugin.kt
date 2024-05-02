@@ -497,12 +497,21 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private val mPrinterSettingListener = object : PrinterSettingListener {
         override fun onGetPrinterSetting(p0: Int, p1: Int, p2: Int) {
-            Log.e("logTag", "onGetPrinterSetting type: $p0 $p1 $p2")
+            try {
+                Log.e("logTag", "onGetPrinterSetting type: $p0 $p1 $p2")
+                this.sendEvent("onGetPrinterSetting type: $p0 $p1 $p2")
+            } catch (e: Exception) {
+                Log.e(logTag, "onGetPrinterSetting Error ${e?.message}", e)
+            }
         }
 
         override fun onSetPrinterSetting(p0: Int) {
-            Log.e("logTag", "onSetPrinterSetting Code: $p0")
-            this.sendEvent("Event PrinterSetting set")
+            try {
+                Log.e("logTag", "onSetPrinterSetting Code: $p0")
+                this.sendEvent("onSetPrinterSetting Code: $p0")
+            } catch (e: Exception) {
+                Log.e(logTag, "onSetPrinterSetting Error ${e?.message}", e)
+            }
         }
     }
 
