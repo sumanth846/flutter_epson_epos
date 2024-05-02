@@ -78,12 +78,12 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
 
 
     fun sendEvent(data: Any?) {
-        eventSink?.success(data)
+        eventSink?.add(data)
     }
 
     override fun onListen(arguments: Any?, events: EventSink?) {
         eventSink = events
-        eventSink.success("Event channel started")
+        eventSink?.add("Event channel started")
     }
 
     override fun onCancel(arguments: Any?) {
@@ -509,6 +509,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
 
         override fun onSetPrinterSetting(p0: Int) {
             Log.e("logTag", "onSetPrinterSetting Code: $p0")
+            sendEvent("Event PrinterSetting set")
         }
     }
 
@@ -915,5 +916,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
 
 
 }
+
+
 
 
