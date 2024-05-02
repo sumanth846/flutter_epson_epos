@@ -78,12 +78,12 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
 
 
     fun sendEvent(data: Any?) {
-        eventSink?.add(data)
+        eventSink?.success(data)
     }
 
     override fun onListen(arguments: Any?, events: EventSink?) {
         eventSink = events
-        eventSink?.add("Event channel started")
+        eventSink?.success("Event channel started")
     }
 
     override fun onCancel(arguments: Any?) {
@@ -109,8 +109,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "epson_epos_events");
-        eventChannel.setStreamHandler(this)
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "epson_epos")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
@@ -123,6 +121,9 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, StreamH
             1,
             PrintLog.LOGLEVEL_LOW
         );
+
+        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "epson_epos_events");
+        eventChannel.setStreamHandler(this)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull rawResult: Result) {
