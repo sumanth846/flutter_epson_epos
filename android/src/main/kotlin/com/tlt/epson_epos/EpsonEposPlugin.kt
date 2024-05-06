@@ -535,23 +535,23 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       coroutineScope.launch {
         try {
           Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
-          val statusInfo: PrinterStatusInfo? = withContext(Dispatchers.IO) {
-            mPrinter!!.status
+          mPrinterStatus = withContext(Dispatchers.IO) {
+            val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+            val statusString =
+              "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}"
+            Log.d(logTag, "Printing $target $series | $statusString")
+            
+            if (statusInfo?.online != Printer.TRUE) {
+              mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
+            }
+            
+            mPrinter!!.clearCommandBuffer()
+            
+            printerStatusError()
           }
-          mPrinterStatus = withContext(Dispatchers.IO) { printerStatusError() }
-          val statusString =
-            "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}"
-          Log.d(logTag, "Printing $target $series | $statusString")
-          
-          if (statusInfo?.online != Printer.TRUE) {
-            withContext(Dispatchers.IO) { mPrinter!!.connect(target, Printer.PARAM_DEFAULT) }
-          }
-          
-          Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
-          withContext(Dispatchers.IO) { mPrinter!!.clearCommandBuffer() }
-          Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
         } catch (e: Exception) {
           Log.e(logTag, "Error occurred: ${e.message}")
+          withContext(Dispatchers.IO) { disconnectPrinter() }
         }
       }
     } catch (e: Epos2Exception) {
