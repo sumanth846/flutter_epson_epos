@@ -34,7 +34,6 @@ import io.flutter.plugin.common.EventChannel.StreamHandler
 import java.lang.Exception
 import kotlin.collections.ArrayList
 import android.util.Base64
-import kotlinx.datetime.Clock
 
 import java.lang.StringBuilder
 
@@ -399,11 +398,16 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
+
+    private fun getTimstamp() {
+       return java.util.Calendar.getInstance().time.toString("yyyy/MM/dd HH:mm:ss")
+    }
+
     /**
      * Print
      */
     private fun onPrint(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.d(logTag, "**** onPrint ${Clock.System.now()}")
+        Log.d(logTag, "**** onPrint ${getTimstamp()}")
         val type: String = call.argument<String>("type") as String
         val series: String = call.argument<String>("series") as String
         val target: String = call.argument<String>("target") as String
@@ -421,11 +425,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     mPrinter!!.clearCommandBuffer()
                 }
             } else {
-                Log.d(logTag, "**** onPrint onGenerateCommand ${Clock.System.now()}")
+                Log.d(logTag, "**** onPrint onGenerateCommand ${getTimstamp()}")
                 commands.forEach {
                     onGenerateCommand(it)
                 }
-                Log.d(logTag, "**** onPrint onGenerateCommand End ${Clock.System.now()}")
+                Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
                 try {
                     val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
                     val statusString =
@@ -444,10 +448,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         resp.message = isError
                         Log.d(logTag, resp.toJSON())
                     } else {
-                        Log.d(logTag, "**** onPrint sendData ${Clock.System.now()}")
+                        Log.d(logTag, "**** onPrint sendData ${getTimstamp()}")
                         mPrinter!!.sendData(Printer.PARAM_DEFAULT)
                         Log.d(logTag, "Printed $target $series")
-                        Log.d(logTag, "**** onPrint sendData End ${Clock.System.now()}")
+                        Log.d(logTag, "**** onPrint sendData End ${getTimstamp()}")
                         resp.success = true
                         resp.message = "Printed $target $series | $statusString"
                         Log.d(logTag, resp.toJSON())

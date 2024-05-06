@@ -47,5 +47,4 @@ dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'androidx.annotation:annotation:1.7.1'
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
 }
