@@ -534,11 +534,14 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
         try {
+            Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
             val status: PrinterStatusInfo? = mPrinter!!.status;
             if (status?.online != Printer.TRUE) {
                 mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
             }
+            Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
             mPrinter!!.clearCommandBuffer()
+            Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
         } catch (e: Epos2Exception) {
             disconnectPrinter()
             Log.e(logTag, "Connect Error ${e.errorStatus}", e)
