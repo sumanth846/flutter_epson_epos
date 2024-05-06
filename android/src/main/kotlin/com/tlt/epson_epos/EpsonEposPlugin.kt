@@ -36,6 +36,7 @@ import kotlin.collections.ArrayList
 import android.util.Base64
 
 import java.lang.StringBuilder
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
@@ -404,7 +405,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val date = java.util.Calendar.getInstance().time
         val dateInString = date.toString()
 
-        return "$dateInString *** ${date.time.seconds.toString(DurationUnit.SECONDS, 5)}"
+        return "$dateInString *** ${date.time.milliseconds.toString(DurationUnit.SECONDS, 4)}"
     }
 
     /**
@@ -435,10 +436,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
                 Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
                 try {
-                    val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
-                    val statusString =
-                        "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
-                    Log.d(logTag, "Printing $target $series | $statusString")
+//                    val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
+//                    val statusString =
+//                        "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
+//                    Log.d(logTag, "Printing $target $series | $statusString")
 
                     val isError = printerStatusError()
 
