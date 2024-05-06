@@ -12,7 +12,7 @@ class EpsonEPOS {
   static const _eventChannel = const EventChannel('epson_epos_events');
   static EpsonEPOSHelper _eposHelper = EpsonEPOSHelper();
 
-  Stream<dynamic> get onEvent => _eventChannel.receiveBroadcastStream();
+  static Stream<dynamic> get onEvent => _eventChannel.receiveBroadcastStream();
 
   static bool _isPrinterPlatformSupport({bool throwError = false}) {
     if (Platform.isAndroid) return true;
