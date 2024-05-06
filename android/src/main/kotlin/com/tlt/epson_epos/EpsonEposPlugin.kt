@@ -36,6 +36,8 @@ import kotlin.collections.ArrayList
 import android.util.Base64
 
 import java.lang.StringBuilder
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 
 interface JSONConvertable {
@@ -398,12 +400,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
-
     private fun getTimstamp(): String {
         val date = java.util.Calendar.getInstance().time
         val dateInString = date.toString()
 
-        return dateInString
+        return "$dateInString *** ${date.time.seconds.toString(DurationUnit.SECONDS, 5)}"
     }
 
     /**
@@ -524,6 +525,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun connectPrinter(target: String, series: String): Boolean {
+        Log.d(logTag, "**** connectPrinter ${getTimstamp()}")
+
         val printCons = getPrinterConstant(series)
         if (mPrinter == null || mTarget != target) {
             mPrinter = Printer(printCons, 0, context)
@@ -531,18 +534,18 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
         try {
-            this.sendEvent("native Connecting Printer")
             val status: PrinterStatusInfo? = mPrinter!!.status;
             if (status?.online != Printer.TRUE) {
                 mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
             }
             mPrinter!!.clearCommandBuffer()
-            this.sendEvent("native Connected Printer")
         } catch (e: Epos2Exception) {
             disconnectPrinter()
             Log.e(logTag, "Connect Error ${e.errorStatus}", e)
             return false
         }
+
+        Log.d(logTag, "**** connectPrinter End ${getTimstamp()}")
         return true
     }
 
