@@ -402,7 +402,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
      * Print
      */
     private fun onPrint(@NonNull call: MethodCall, @NonNull result: Result) {
-        this.sendEvent("native onPrint called")
+        Log.d(logTag, "**** onPrint ${Clock.System.now()}")
         val type: String = call.argument<String>("type") as String
         val series: String = call.argument<String>("series") as String
         val target: String = call.argument<String>("target") as String
@@ -420,11 +420,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     mPrinter!!.clearCommandBuffer()
                 }
             } else {
-                this.sendEvent("native onGenerateCommand")
+                Log.d(logTag, "**** onPrint onGenerateCommand ${Clock.System.now()}")
                 commands.forEach {
                     onGenerateCommand(it)
                 }
-                this.sendEvent("native onGenerateCommand End")
+                Log.d(logTag, "**** onPrint onGenerateCommand End ${Clock.System.now()}")
                 try {
                     val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
                     val statusString =
@@ -443,10 +443,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         resp.message = isError
                         Log.d(logTag, resp.toJSON())
                     } else {
-                        this.sendEvent("native onPrint sendData")
+                        Log.d(logTag, "**** onPrint sendData ${Clock.System.now()}")
                         mPrinter!!.sendData(Printer.PARAM_DEFAULT)
-                        this.sendEvent("native onPrint sendData End")
                         Log.d(logTag, "Printed $target $series")
+                        Log.d(logTag, "**** onPrint sendData End ${Clock.System.now()}")
                         resp.success = true
                         resp.message = "Printed $target $series | $statusString"
                         Log.d(logTag, resp.toJSON())
