@@ -88,7 +88,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   }
   
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-  
   }
   
   override fun onDetachedFromActivity() {
