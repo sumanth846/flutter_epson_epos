@@ -399,8 +399,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
 
-    private fun getTimstamp() {
-       return java.util.Calendar.getInstance().time.toString("yyyy/MM/dd HH:mm:ss")
+    private fun getTimstamp(): String {
+        val date = java.util.Calendar.getInstance().time
+        val dateInString = date.toString()
+
+        return dateInString
     }
 
     /**
