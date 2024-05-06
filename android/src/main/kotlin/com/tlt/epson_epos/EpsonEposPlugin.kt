@@ -436,6 +436,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
                 Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
                 try {
+                    val statusString = "val statusString ="
 //                    val statusInfo: PrinterStatusInfo? = mPrinter!!.status;
 //                    val statusString =
 //                        "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}";
