@@ -482,7 +482,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           val isError = printerStatusError()
           
           Log.d(logTag, "Status : $isError")
-          if (!isError.lowercase().equals("online".lowercase())) {
+          if (!isError.trim().lowercase().equals("online".trim().lowercase())) {
             resp.success = false
             resp.message = isError
             Log.d(logTag, resp.toJSON())
