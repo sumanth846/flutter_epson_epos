@@ -559,7 +559,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
         } catch (e: Exception) {
           Log.e(logTag, "Error occurred: ${e.message}")
-          withContext(Dispatchers.IO) { disconnectPrinter() }
+          disconnectPrinter()
         }
       }
     } catch (e: Epos2Exception) {
