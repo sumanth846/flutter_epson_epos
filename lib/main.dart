@@ -71,6 +71,11 @@ class EpsonEPOS {
     return await _channel.invokeMethod('getPrinterSetting', params);
   }
 
+  static Future<dynamic> getPrinterStatus(EpsonPrinterModel printer) async {
+    final Map<String, dynamic> params = {"type": printer.type, "series": printer.series, "target": printer.target};
+    return await _channel.invokeMethod('getPrinterStatus', params);
+  }
+
   static Future<dynamic> setPrinterSetting(EpsonPrinterModel printer,
       {int? paperWidth, int? printDensity, int? printSpeed}) async {
     final Map<String, dynamic> params = {

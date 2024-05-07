@@ -162,6 +162,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           setPrinterSetting(call, result)
         }
         
+        "getPrinterStatus" -> {
+          getPrinterStatus(call, result)
+        }
+        
         else -> {
           Log.d(logTag, "Method: ${call.method} is not supported yet")
           result.notImplemented()
@@ -312,6 +316,36 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   
   private fun isPrinterConnected(@NonNull call: MethodCall, @NonNull result: Result) {
     Log.d(logTag, "isPrinterConnected $call $result")
+  }
+  
+  private fun getPrinterStatus(@NonNull call: MethodCall, @NonNull result: Result) {
+    Log.d(logTag, "getPrinterStatus $call $result")
+    
+    val type: String = call.argument<String>("type") as String
+    val series: String = call.argument<String>("series") as String
+    val target: String = call.argument<String>("target") as String
+    
+    var resp = EpsonEposPrinterResult("onPrint${type}", false)
+    
+    try {
+      GlobalScope.launch(Dispatchers.IO) {
+        val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+        
+        withContext(Dispatchers.Main) {
+          mPrinterStatus = statusInfo
+          resp.success = true
+          resp.message = ''
+          result.success(resp.toJSON())
+        }
+      }
+      
+    } catch (e: Exception) {
+      e.printStackTrace()
+      resp.success = false
+      resp.message = "Print error"
+      result.success(resp.toJSON())
+    }
+    
   }
   
   private fun getPrinterSetting(@NonNull call: MethodCall, @NonNull result: Result) {
