@@ -566,6 +566,9 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
+      val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+      mPrinterStatus = statusInfo
+      
       if (mPrinterStatus?.online != Printer.TRUE) {
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
