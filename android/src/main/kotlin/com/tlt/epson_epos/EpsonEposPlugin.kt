@@ -334,6 +334,18 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     try {
       if (mPrinter != null) {
         
+        coroutineScope.launch {
+          mPrinterStatus = withContext(Dispatchers.IO) {
+            mPrinter!!.status
+          }
+          
+          withContext(Dispatchers.Main) {
+            Log.d(logTag, "*** coroutineScope $mPrinterStatus")
+            mPrinterStatus = mPrinterStatus
+          }
+        }
+        
+        
         val statusInfo: PrinterStatusInfo? = mPrinterStatus
         
         if (statusInfo?.online == Printer.TRUE) {
@@ -580,15 +592,15 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
         
         coroutineScope.launch {
-          mPrinterStatus = withContext(Dispatchers.IO, {
+          mPrinterStatus = withContext(Dispatchers.IO) {
             mPrinter!!.startMonitor()
             
             mPrinter!!.status
-          })
+          }
           
-          withContext(Dispatchers.Main, {
+          withContext(Dispatchers.Main) {
             mPrinterStatus = mPrinterStatus
-          })
+          }
         }
       }
       
