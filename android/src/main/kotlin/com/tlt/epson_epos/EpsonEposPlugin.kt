@@ -532,9 +532,9 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
+      Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
       coroutineScope.launch {
         try {
-          Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
           mPrinterStatus = withContext(Dispatchers.IO) {
             val statusInfo: PrinterStatusInfo? = mPrinter!!.status
             val statusString =
@@ -544,14 +544,14 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             if (statusInfo?.online != Printer.TRUE) {
               mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
             }
-            
+            mPrinterStatus = statusString
             mPrinter!!.clearCommandBuffer()
             
             printerStatusError()
           }
         } catch (e: Exception) {
           Log.e(logTag, "Error occurred: ${e.message}")
-          withContext(Dispatchers.IO) { disconnectPrinter() }
+          disconnectPrinter()
         }
       }
     } catch (e: Epos2Exception) {
