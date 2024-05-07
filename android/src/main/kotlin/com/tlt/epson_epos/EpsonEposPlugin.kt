@@ -454,7 +454,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             Log.d(logTag, "Printed $target $series")
             Log.d(logTag, "**** onPrint sendData End ${getTimstamp()}")
             resp.success = true
-            resp.message = "Printed $target $series | $statusString"
+            resp.message = "Printed $target $series | online"
             Log.d(logTag, resp.toJSON())
           }
           
@@ -825,7 +825,13 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       return getErrorMessage("");
     }
     var errorMes = "";
-    val status: PrinterStatusInfo? = mPrinterStatus != null ? mPrinterStatus : mPrinter!!.status;
+    val status: PrinterStatusInfo?
+    
+    if (mPrinterStatus != null) {
+      status = mPrinterStatus
+    } else {
+      status = mPrinter!!.status
+    }
     
     if (status?.online == Printer.FALSE) {
       errorMes = getErrorMessage("err_offline")
