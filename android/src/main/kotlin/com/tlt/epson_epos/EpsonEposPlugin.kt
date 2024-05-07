@@ -34,6 +34,8 @@ import io.flutter.plugin.common.EventChannel.StreamHandler
 import java.lang.Exception
 import kotlin.collections.ArrayList
 import android.util.Base64
+import com.epson.epos2.printer.PrinterInformationListener
+import com.epson.epos2.printer.StatusChangeListener
 
 import java.lang.StringBuilder
 import kotlin.time.Duration.Companion.milliseconds
@@ -318,6 +320,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     Log.d(logTag, "isPrinterConnected $call $result")
   }
   
+  
   private fun getPrinterStatus(@NonNull call: MethodCall, @NonNull result: Result) {
     Log.d(logTag, "getPrinterStatus $call $result")
     
@@ -329,6 +332,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       if (mPrinter != null) {
+        
         val statusInfo: PrinterStatusInfo? = mPrinterStatus
         
         if (statusInfo?.online == Printer.TRUE) {
@@ -338,7 +342,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           resp.success = false
           resp.message = printerStatusError()
         }
-        mPrinterStatus = statusInfo
         Log.d(logTag, resp.toJSON())
         result.success(resp.toJSON())
       } else {
@@ -453,14 +456,14 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
    * Print
    */
   private fun onPrint(@NonNull call: MethodCall, @NonNull result: Result) {
-    Log.d(logTag, "**** onPrint ${getTimstamp()}")
+    Log.d(logTag, "**** onPrint START ${getTimstamp()}")
     val type: String = call.argument<String>("type") as String
     val series: String = call.argument<String>("series") as String
     val target: String = call.argument<String>("target") as String
     
     val commands: ArrayList<Map<String, Any>> =
       call.argument<ArrayList<Map<String, Any>>>("commands") as ArrayList<Map<String, Any>>
-    var resp = EpsonEposPrinterResult("onPrint${type}", false)
+    val resp = EpsonEposPrinterResult("onPrint${type}", false)
     try {
       if (!connectPrinter(target, series)) {
         resp.success = false
@@ -471,29 +474,21 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           mPrinter!!.clearCommandBuffer()
         }
       } else {
-        Log.d(logTag, "**** onPrint onGenerateCommand ${getTimstamp()}")
         commands.forEach {
           onGenerateCommand(it)
         }
-        Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
         try {
           
           val isError = printerStatusError()
           
           Log.d(logTag, "Status : $isError")
-          if (!isError.trim().lowercase().equals(
-              "Unknown error. Please check the power and communication status of the printer.".trim()
-                .lowercase()
-            )
-          ) {
+          if (!isError.lowercase().equals("online".lowercase())) {
             resp.success = false
             resp.message = isError
             Log.d(logTag, resp.toJSON())
           } else {
-            Log.d(logTag, "**** onPrint sendData ${getTimstamp()}")
             mPrinter!!.sendData(Printer.PARAM_DEFAULT)
             Log.d(logTag, "Printed $target $series")
-            Log.d(logTag, "**** onPrint sendData End ${getTimstamp()}")
             resp.success = true
             resp.message = "Printed $target $series | online"
             Log.d(logTag, resp.toJSON())
@@ -514,10 +509,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       resp.message = printerStatusError()
       disconnectPrinter()
       result.success(resp.toJSON())
+    } finally {
+      Log.d(logTag, "**** onPrint END ${getTimstamp()}")
     }
   }
-  
-  /// FUNCTIONS
   
   private val mDiscoveryListener = DiscoveryListener { deviceInfo ->
     Log.d(logTag, "Found: ${deviceInfo?.deviceName}, ${deviceInfo?.target}, ${deviceInfo}")
@@ -575,6 +570,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       mPrinterStatus = statusInfo
       
       if (mPrinterStatus?.online != Printer.TRUE) {
+        mPrinter!!.setStatusChangeEventListener { printer, i ->
+          Log.d(logTag, "*** StatusChangeEventListener $i")
+          mPrinterStatus = mPrinter!!.status
+        }
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
       
@@ -836,7 +835,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   
   private fun printerStatusError(): String {
     if (mPrinter == null) {
-      return getErrorMessage("");
+      return getErrorMessage("")
     }
     var errorMes = "";
     val status: PrinterStatusInfo?
@@ -845,6 +844,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       status = mPrinterStatus
     } else {
       status = mPrinter!!.status
+    }
+    
+    if (status?.online == Printer.TRUE) {
+      errorMes = getErrorMessage("online")
     }
     
     if (status?.online == Printer.FALSE) {
@@ -907,6 +910,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     var errorMes = when (errorKey) {
       "warn_receipt_near_end" -> {
         "Roll paper is nearly end."
+      }
+      
+      "online" -> {
+        "Online"
       }
       
       "warn_battery_near_end" -> {
