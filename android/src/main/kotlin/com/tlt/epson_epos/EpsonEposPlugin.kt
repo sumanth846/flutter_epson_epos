@@ -436,7 +436,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
         try {
-          val statusString = mPrinterStatus
           
           val isError = printerStatusError()
           
@@ -532,37 +531,44 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
-      Log.d(logTag, "**** coroutineScope start ${getTimstamp()}")
-      coroutineScope.launch {
-        try {
-          Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
-          
-          // Use async to retrieve printer status information and set printer status concurrently
-          val statusInfoDeferred = async { mPrinter!!.status }
-          val printerStatusDeferred = async { printerStatusError() }
-          
-          // Wait for both async tasks to complete
-          val statusInfo: PrinterStatusInfo? = statusInfoDeferred.await()
-          mPrinterStatus = printerStatusDeferred.await()
-          
-          Log.d(logTag, "Printing $target $series | $statusInfo")
-          
-          // Check if printer is online and connect if not
-          if (statusInfo?.online != Printer.TRUE) {
-            val connectDeffered = async { mPrinter!!.connect(target, Printer.PARAM_DEFAULT) }
-            connectDeffered.await()
-          }
-          
-          Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
-          
-          mPrinter!!.clearCommandBuffer()
-          
-          Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
-        } catch (e: Exception) {
-          Log.e(logTag, "Error occurred: ${e.message}")
-        }
+//      Log.d(logTag, "**** coroutineScope start ${getTimstamp()}")
+      val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+      mPrinterStatus = statusInfo
+      
+      if (statusInfo?.online != Printer.TRUE) {
+        mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
-      Log.d(logTag, "**** coroutineScope END ${getTimstamp()}")
+
+//      coroutineScope.launch {
+//        try {
+//          Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
+//
+//          // Use async to retrieve printer status information and set printer status concurrently
+//          val statusInfoDeferred = async { mPrinter!!.status }
+//          val printerStatusDeferred = async { printerStatusError() }
+//
+//          // Wait for both async tasks to complete
+//          val statusInfo: PrinterStatusInfo? = statusInfoDeferred.await()
+//          mPrinterStatus = printerStatusDeferred.await()
+//
+//          Log.d(logTag, "Printing $target $series | $statusInfo")
+//
+//          // Check if printer is online and connect if not
+//          if (statusInfo?.online != Printer.TRUE) {
+//            val connectDeffered = async { mPrinter!!.connect(target, Printer.PARAM_DEFAULT) }
+//            connectDeffered.await()
+//          }
+//
+//          Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
+//
+//          mPrinter!!.clearCommandBuffer()
+//
+//          Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
+//        } catch (e: Exception) {
+//          Log.e(logTag, "Error occurred: ${e.message}")
+//        }
+//      }
+//      Log.d(logTag, "**** coroutineScope END ${getTimstamp()}")
     } catch (e: Epos2Exception) {
       disconnectPrinter()
       Log.e(logTag, "Connect Error ${e.errorStatus}", e)
@@ -819,7 +825,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       return getErrorMessage("");
     }
     var errorMes = "";
-    val status: PrinterStatusInfo? = mPrinter!!.status;
+    val status: PrinterStatusInfo? = mPrinterStatus != null ? mPrinterStatus : mPrinter!!.status;
     
     if (status?.online == Printer.FALSE) {
       errorMes = getErrorMessage("err_offline")
