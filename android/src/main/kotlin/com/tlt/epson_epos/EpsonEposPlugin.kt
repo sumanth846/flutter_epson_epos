@@ -590,11 +590,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
         })
         
-        mPrinter!!.setReceiveEventListener({ printer, i, printerStatusInfo, s ->
-          Log.d(logTag, "*** StatusChangeEventListener $printer $i")
-          mPrinterStatus = printerStatusInfo
-        })
-        
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
       
