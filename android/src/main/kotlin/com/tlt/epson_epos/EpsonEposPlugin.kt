@@ -366,7 +366,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     val series: String = call.argument<String>("series") as String
     val target: String = call.argument<String>("target") as String
     
-    var resp = EpsonEposPrinterResult("onPrint${type}", false)
+    val resp = EpsonEposPrinterResult("onPrint${type}", false)
     try {
       if (!connectPrinter(target, series)) {
         resp.success = false
@@ -567,32 +567,20 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
-      val statusInfo: PrinterStatusInfo? = mPrinter!!.status
-      mPrinterStatus = statusInfo
       
-      if (mPrinterStatus?.online != Printer.TRUE) {
+      if (mPrinterStatus == null || mPrinterStatus?.online != Printer.TRUE) {
         Log.d(logTag, "*** mPrinterStatus if inside")
-        
-        mPrinter!!.setConnectionEventListener { any, i ->
-          Log.d(logTag, "*** setConnectionEventListener $i $any")
-          if (i == Printer.EVENT_RECONNECTING) {
-            Log.d(logTag, "*** setConnectionEventListener EVENT_RECONNECTING$i $any")
-          }
-          if (i == Printer.EVENT_RECONNECT) {
-            Log.d(logTag, "*** setConnectionEventListener EVENT_RECONNECT $i $any")
-          }
-          if (i == Printer.EVENT_DISCONNECT) {
-            Log.d(logTag, "*** setConnectionEventListener EVENT_DISCONNECT $i $any")
-          }
-        }
         
         mPrinter!!.setStatusChangeEventListener { printer, i ->
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
+          mPrinterStatus = mPrinter!!.status
         }
         
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
         
         mPrinter!!.startMonitor()
+        
+        mPrinterStatus = mPrinter!!.status
       }
       
       mPrinter!!.clearCommandBuffer()
@@ -614,9 +602,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     while (true) {
       try {
         if (mPrinter != null) {
+          mPrinter!!.stopMonitor()
           mPrinter!!.disconnect()
           mPrinter = null
           mTarget = null
+          mPrinterStatus = null
         }
         break
       } catch (e: Exception) {
