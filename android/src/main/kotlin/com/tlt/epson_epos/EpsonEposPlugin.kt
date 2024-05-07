@@ -341,7 +341,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         
         withContext(Dispatchers.Main) {
           mPrinterStatus = statusInfo
-          
+          Log.d(logTag, resp.toJSON())
           result.success(resp.toJSON())
         }
       }
