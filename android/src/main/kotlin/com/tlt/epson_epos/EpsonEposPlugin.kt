@@ -541,20 +541,17 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             mPrinter!!.status
           }
           
-          mPrinterStatus = printerStatusError()
+          Log.d(logTag, "Printing $target $series | $statusInfo")
           
-          val statusString = "Connection: ${statusInfo?.connection} online: ${statusInfo?.online} cover: ${statusInfo?.coverOpen} Paper: ${statusInfo?.paper} ErrorSt: ${statusInfo?.errorStatus} Battery Level: ${statusInfo?.batteryLevel}"
-          
-
-          Log.d(logTag, "Printing $target $series | $statusString")
-          
-          if (status?.online != Printer.TRUE) {
+          if (statusInfo?.online != Printer.TRUE) {
             mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
           }
           
           Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
           
           mPrinter!!.clearCommandBuffer()
+          
+          mPrinterStatus = printerStatusError()
           
           Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
         } catch (e: Exception) {
