@@ -34,6 +34,7 @@ import io.flutter.plugin.common.EventChannel.StreamHandler
 import java.lang.Exception
 import kotlin.collections.ArrayList
 import android.util.Base64
+import com.epson.epos2.ConnectionListener
 import com.epson.epos2.printer.PrinterInformationListener
 import com.epson.epos2.printer.StatusChangeListener
 
@@ -570,14 +571,30 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       mPrinterStatus = statusInfo
       
       if (mPrinterStatus?.online != Printer.TRUE) {
-        Log.d(logTag, "*** mPrinterStatus if inside $i")
-        mPrinter!!.setStatusChangeEventListener(StatusChangeListener { printer, i ->
-          Log.d(logTag, "*** setStatusChangeEventListener $i")
+        Log.d(logTag, "*** mPrinterStatus if inside")
+        
+        mPrinter!!.setConnectionEventListener({ any, i ->
+          Log.d(logTag, "*** setConnectionEventListener $i $any")
+          if (eventType == Printer.EVENT_RECONNECTING) {
+            Log.d(logTag, "*** setConnectionEventListener EVENT_RECONNECTING$i $any")
+          }
+          if (eventType == Printer.EVENT_RECONNECT) {
+            Log.d(logTag, "*** setConnectionEventListener EVENT_RECONNECT $i $any")
+          }
+          if (eventType == Printer.EVENT_DISCONNECT) {
+            Log.d(logTag, "*** setConnectionEventListener EVENT_DISCONNECT $i $any")
+          }
         })
-        mPrinter!!.setReceiveEventListener(ReceiveListener { printer, i, printerStatusInfo, s ->
-          Log.d(logTag, "*** StatusChangeEventListener $i")
+        
+        mPrinter!!.setStatusChangeEventListener({ printer, i ->
+          Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
+        })
+        
+        mPrinter!!.setReceiveEventListener({ printer, i, printerStatusInfo, s ->
+          Log.d(logTag, "*** StatusChangeEventListener $printer $i")
           mPrinterStatus = printerStatusInfo
         })
+        
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
       
