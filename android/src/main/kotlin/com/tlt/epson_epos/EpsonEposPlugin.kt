@@ -453,7 +453,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
    * Print
    */
   private fun onPrint(@NonNull call: MethodCall, @NonNull result: Result) {
-    Log.d(logTag, "**** onPrint ${getTimstamp()}")
+    Log.d(logTag, "**** onPrint START ${getTimstamp()}")
     val type: String = call.argument<String>("type") as String
     val series: String = call.argument<String>("series") as String
     val target: String = call.argument<String>("target") as String
@@ -506,6 +506,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       resp.message = printerStatusError()
       disconnectPrinter()
       result.success(resp.toJSON())
+    } finally {
+      Log.d(logTag, "**** onPrint END ${getTimstamp()}")
     }
   }
   
