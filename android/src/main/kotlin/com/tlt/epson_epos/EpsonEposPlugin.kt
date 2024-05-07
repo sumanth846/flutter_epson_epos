@@ -538,6 +538,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       if (statusInfo?.online != Printer.TRUE) {
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
+      
+      mPrinter!!.clearCommandBuffer()
 
 //      coroutineScope.launch {
 //        try {
