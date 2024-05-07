@@ -453,7 +453,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
    * Print
    */
   private fun onPrint(@NonNull call: MethodCall, @NonNull result: Result) {
-    Log.d(logTag, "**** onPrint START ${getTimstamp()}")
+    Log.d(logTag, "**** onPrint ${getTimstamp()}")
     val type: String = call.argument<String>("type") as String
     val series: String = call.argument<String>("series") as String
     val target: String = call.argument<String>("target") as String
@@ -467,48 +467,54 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         resp.message = "Can not connect to the printer."
         result.success(resp.toJSON())
         Log.e("logTag", "Cannot ConnectPrinter $resp")
-      } else {
-        commands.forEach {
-          onGenerateCommand(it)
-        }
-        
         if (mPrinter != null) {
           mPrinter!!.clearCommandBuffer()
         }
-        
+      } else {
+        Log.d(logTag, "**** onPrint onGenerateCommand ${getTimstamp()}")
+        commands.forEach {
+          onGenerateCommand(it)
+        }
+        Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
         try {
-          if (mPrinterStatus != null && mPrinterStatus?.online == Printer.FALSE) {
+          
+          val isError = printerStatusError()
+          
+          Log.d(logTag, "Status : $isError")
+          if (!isError.trim().lowercase().equals(
+              "Unknown error. Please check the power and communication status of the printer.".trim()
+                .lowercase()
+            )
+          ) {
             resp.success = false
-            resp.message = printerStatusError()
+            resp.message = isError
             Log.d(logTag, resp.toJSON())
           } else {
+            Log.d(logTag, "**** onPrint sendData ${getTimstamp()}")
             mPrinter!!.sendData(Printer.PARAM_DEFAULT)
             Log.d(logTag, "Printed $target $series")
-            
+            Log.d(logTag, "**** onPrint sendData End ${getTimstamp()}")
             resp.success = true
             resp.message = "Printed $target $series | online"
             Log.d(logTag, resp.toJSON())
           }
           
-          result.success(resp.toJSON())
+          this.sendEvent("native onPrint End")
+          result.success(resp.toJSON());
         } catch (ex: Epos2Exception) {
           ex.printStackTrace()
           Log.e(logTag, "sendData Error" + ex.errorStatus, ex)
           resp.success = false
           resp.message = printerStatusError()
+          disconnectPrinter()
         }
       }
     } catch (e: Exception) {
       e.printStackTrace()
       resp.success = false
-      resp.message = e.message
+      resp.message = printerStatusError()
       disconnectPrinter()
       result.success(resp.toJSON())
-    } finally {
-      Log.d(logTag, "**** onPrint END ${getTimstamp()}")
-      if (mPrinter != null) {
-        mPrinter!!.clearCommandBuffer()
-      }
     }
   }
   
