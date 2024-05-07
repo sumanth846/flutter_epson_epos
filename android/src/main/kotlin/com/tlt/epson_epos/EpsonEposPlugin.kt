@@ -549,7 +549,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           
           // Check if printer is online and connect if not
           if (statusInfo?.online != Printer.TRUE) {
-            mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
+            val connectDeffered = async { mPrinter!!.connect(target, Printer.PARAM_DEFAULT) }
+            connectDeffered.await()
           }
           
           Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
