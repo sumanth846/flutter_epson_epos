@@ -333,33 +333,25 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       if (mPrinter != null) {
-        
         coroutineScope.launch {
-          mPrinterStatus = withContext(Dispatchers.IO) {
-            mPrinter!!.status
-          }
+          mPrinterStatus = mPrinter!!.status
+        }.invokeOnCompletion { it ->
+          val statusInfo: PrinterStatusInfo? = mPrinterStatus
           
-          withContext(Dispatchers.Main) {
-            Log.d(logTag, "*** coroutineScope $mPrinterStatus")
-            mPrinterStatus = mPrinterStatus
+          if (statusInfo?.online == Printer.TRUE) {
+            resp.success = true
+            resp.message = "online"
+          } else if (statusInfo != null) {
+            resp.success = false
+            resp.message = printerStatusError()
           }
+          Log.d(logTag, resp.toJSON())
+          result.success(resp.toJSON())
         }
-        
-        
-        val statusInfo: PrinterStatusInfo? = mPrinterStatus
-        
-        if (statusInfo?.online == Printer.TRUE) {
-          resp.success = true
-          resp.message = "online"
-        } else if (statusInfo != null) {
-          resp.success = false
-          resp.message = printerStatusError()
-        }
-        Log.d(logTag, resp.toJSON())
-        result.success(resp.toJSON())
       } else {
         resp.success = false
         resp.message = "Printer connecting"
+        result.success(resp.toJSON())
       }
       
     } catch (e: Exception) {
