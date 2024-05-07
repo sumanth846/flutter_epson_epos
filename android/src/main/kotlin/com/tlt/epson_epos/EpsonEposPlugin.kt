@@ -565,7 +565,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
       if (mPrinterStatus?.online != Printer.TRUE) {
-        disconnectPrinter();
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
       
