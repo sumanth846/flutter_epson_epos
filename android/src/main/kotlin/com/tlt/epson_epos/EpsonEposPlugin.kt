@@ -573,14 +573,23 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         
         mPrinter!!.setStatusChangeEventListener { printer, i ->
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
-          mPrinterStatus = mPrinter!!.status
+          
+          mPrinterStatus = printer.status
         }
         
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
         
-        mPrinter!!.startMonitor()
-        
-        mPrinterStatus = mPrinter!!.status
+        coroutineScope.launch {
+          mPrinterStatus = withContext(Dispatchers.IO, {
+            mPrinter!!.startMonitor()
+            
+            mPrinter!!.status
+          })
+          
+          withContext(Dispatchers.Main, {
+            mPrinterStatus = mPrinterStatus
+          })
+        }
       }
       
       mPrinter!!.clearCommandBuffer()
