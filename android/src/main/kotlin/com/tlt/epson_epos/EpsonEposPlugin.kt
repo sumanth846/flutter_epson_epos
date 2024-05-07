@@ -537,26 +537,31 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         try {
           Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
           
-          val statusInfo: PrinterStatusInfo? = withContext(Dispatchers.IO) {
-            mPrinter!!.status
-          }
+          // Use async to retrieve printer status information and set printer status concurrently
+          val statusInfoDeferred = async { mPrinter!!.status }
+          val printerStatusDeferred = async { printerStatusError() }
           
+          // Wait for both async tasks to complete
+          val statusInfo: PrinterStatusInfo? = statusInfoDeferred.await()
+          mPrinterStatus = printerStatusDeferred.await()
+          
+          // Log printing status
           Log.d(logTag, "Printing $target $series | $statusInfo")
           
+          // Check if printer is online and connect if not
           if (statusInfo?.online != Printer.TRUE) {
             mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
           }
           
           Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
           
+          // Clear command buffer of the printer
           mPrinter!!.clearCommandBuffer()
-          
-          mPrinterStatus = printerStatusError()
           
           Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
         } catch (e: Exception) {
+          // Handle exceptions if any
           Log.e(logTag, "Error occurred: ${e.message}")
-          disconnectPrinter()
         }
       }
     } catch (e: Epos2Exception) {
