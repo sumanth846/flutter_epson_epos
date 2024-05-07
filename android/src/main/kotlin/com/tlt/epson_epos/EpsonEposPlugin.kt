@@ -334,7 +334,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         withContext(Dispatchers.Main) {
           mPrinterStatus = statusInfo
           resp.success = true
-          resp.message = ''
+          resp.message = 'online'
           result.success(resp.toJSON())
         }
       }
