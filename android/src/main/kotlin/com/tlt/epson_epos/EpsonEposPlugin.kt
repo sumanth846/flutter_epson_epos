@@ -329,12 +329,12 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       if (mPrinter != null) {
-        val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+        val statusInfo: PrinterStatusInfo? = mPrinterStatus
         
         if (statusInfo?.online == Printer.TRUE) {
           resp.success = true
           resp.message = "online"
-        } else {
+        } else if (statusInfo != null) {
           resp.success = false
           resp.message = printerStatusError()
         }
@@ -471,6 +471,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         commands.forEach {
           onGenerateCommand(it)
         }
+        
+        if (mPrinter != null) {
+          mPrinter!!.clearCommandBuffer()
+        }
+        
         try {
           if (mPrinterStatus != null && mPrinterStatus?.online == Printer.FALSE) {
             resp.success = false
@@ -485,7 +490,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             Log.d(logTag, resp.toJSON())
           }
           
-          result.success(resp.toJSON());
+          result.success(resp.toJSON())
         } catch (ex: Epos2Exception) {
           ex.printStackTrace()
           Log.e(logTag, "sendData Error" + ex.errorStatus, ex)
@@ -496,7 +501,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     } catch (e: Exception) {
       e.printStackTrace()
       resp.success = false
-      resp.message = printerStatusError()
+      resp.message = e.message
       disconnectPrinter()
       result.success(resp.toJSON())
     } finally {
