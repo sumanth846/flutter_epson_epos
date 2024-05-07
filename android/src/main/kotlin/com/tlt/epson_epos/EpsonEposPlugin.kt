@@ -329,20 +329,22 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       GlobalScope.launch(Dispatchers.IO) {
-        val statusInfo: PrinterStatusInfo? = mPrinter!!.status
-        
-        if (statusInfo?.online == Printer.TRUE) {
-          resp.success = true
-          resp.message = "online"
-        } else {
-          resp.success = false
-          resp.message = printerStatusError()
-        }
-        
-        withContext(Dispatchers.Main) {
-          mPrinterStatus = statusInfo
-          Log.d(logTag, resp.toJSON())
-          result.success(resp.toJSON())
+        if(mPrinter != null) {
+          val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+          
+          if (statusInfo?.online == Printer.TRUE) {
+            resp.success = true
+            resp.message = "online"
+          } else {
+            resp.success = false
+            resp.message = printerStatusError()
+          }
+          
+          withContext(Dispatchers.Main) {
+            mPrinterStatus = statusInfo
+            Log.d(logTag, resp.toJSON())
+            result.success(resp.toJSON())
+          }
         }
       }
       
