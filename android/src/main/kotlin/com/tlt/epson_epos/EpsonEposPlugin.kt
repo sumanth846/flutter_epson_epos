@@ -591,6 +591,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
+        
+        mPrinter!!.startMonitor()
       }
       
       mPrinter!!.clearCommandBuffer()
