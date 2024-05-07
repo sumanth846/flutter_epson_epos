@@ -467,17 +467,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         resp.message = "Can not connect to the printer."
         result.success(resp.toJSON())
         Log.e("logTag", "Cannot ConnectPrinter $resp")
-        if (mPrinter != null) {
-          mPrinter!!.clearCommandBuffer()
-        }
       } else {
-        Log.d(logTag, "**** onPrint onGenerateCommand ${getTimstamp()}")
         commands.forEach {
           onGenerateCommand(it)
         }
-        Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
         try {
-          Log.d(logTag, "Status : $isError")
           if (mPrinterStatus != null && mPrinterStatus?.online == Printer.FALSE) {
             resp.success = false
             resp.message = printerStatusError()
@@ -508,6 +502,9 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       result.success(resp.toJSON())
     } finally {
       Log.d(logTag, "**** onPrint END ${getTimstamp()}")
+      if (mPrinter != null) {
+        mPrinter!!.clearCommandBuffer()
+      }
     }
   }
   
