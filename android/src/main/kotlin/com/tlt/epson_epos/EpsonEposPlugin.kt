@@ -334,7 +334,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         withContext(Dispatchers.Main) {
           mPrinterStatus = statusInfo
           resp.success = true
-          resp.message = 'online'
+          resp.message = "online"
           result.success(resp.toJSON())
         }
       }
@@ -470,29 +470,20 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         Log.d(logTag, "**** onPrint onGenerateCommand End ${getTimstamp()}")
         try {
-          
-          val isError = printerStatusError()
-          
           Log.d(logTag, "Status : $isError")
-          if (!isError.trim().lowercase().equals(
-              "Unknown error. Please check the power and communication status of the printer.".trim()
-                .lowercase()
-            )
-          ) {
+          if (mPrinterStatus != null && mPrinterStatus?.online == Printer.FALSE) {
             resp.success = false
-            resp.message = isError
+            resp.message = printerStatusError()
             Log.d(logTag, resp.toJSON())
           } else {
-            Log.d(logTag, "**** onPrint sendData ${getTimstamp()}")
             mPrinter!!.sendData(Printer.PARAM_DEFAULT)
             Log.d(logTag, "Printed $target $series")
-            Log.d(logTag, "**** onPrint sendData End ${getTimstamp()}")
+            
             resp.success = true
             resp.message = "Printed $target $series | online"
             Log.d(logTag, resp.toJSON())
           }
           
-          this.sendEvent("native onPrint End")
           result.success(resp.toJSON());
         } catch (ex: Epos2Exception) {
           ex.printStackTrace()
@@ -565,46 +556,12 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
-//      Log.d(logTag, "**** coroutineScope start ${getTimstamp()}")
-      val statusInfo: PrinterStatusInfo? = mPrinter!!.status
-      mPrinterStatus = statusInfo
-      
-      if (statusInfo?.online != Printer.TRUE) {
+      if (mPrinterStatus?.online != Printer.TRUE) {
+        disconnectPrinter();
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
       }
       
       mPrinter!!.clearCommandBuffer()
-
-//      coroutineScope.launch {
-//        try {
-//          Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
-//
-//          // Use async to retrieve printer status information and set printer status concurrently
-//          val statusInfoDeferred = async { mPrinter!!.status }
-//          val printerStatusDeferred = async { printerStatusError() }
-//
-//          // Wait for both async tasks to complete
-//          val statusInfo: PrinterStatusInfo? = statusInfoDeferred.await()
-//          mPrinterStatus = printerStatusDeferred.await()
-//
-//          Log.d(logTag, "Printing $target $series | $statusInfo")
-//
-//          // Check if printer is online and connect if not
-//          if (statusInfo?.online != Printer.TRUE) {
-//            val connectDeffered = async { mPrinter!!.connect(target, Printer.PARAM_DEFAULT) }
-//            connectDeffered.await()
-//          }
-//
-//          Log.d(logTag, "**** connectPrinter PrinterStatusInfo End ${getTimstamp()}")
-//
-//          mPrinter!!.clearCommandBuffer()
-//
-//          Log.d(logTag, "**** connectPrinter clearCommandBuffer End ${getTimstamp()}")
-//        } catch (e: Exception) {
-//          Log.e(logTag, "Error occurred: ${e.message}")
-//        }
-//      }
-//      Log.d(logTag, "**** coroutineScope END ${getTimstamp()}")
     } catch (e: Epos2Exception) {
       disconnectPrinter()
       Log.e(logTag, "Connect Error ${e.errorStatus}", e)
