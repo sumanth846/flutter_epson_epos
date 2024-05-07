@@ -573,7 +573,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       if (mPrinterStatus?.online != Printer.TRUE) {
         Log.d(logTag, "*** mPrinterStatus if inside")
         
-        mPrinter!!.setConnectionEventListener({ any, i ->
+        mPrinter!!.setConnectionEventListener { any, i ->
           Log.d(logTag, "*** setConnectionEventListener $i $any")
           if (i == Printer.EVENT_RECONNECTING) {
             Log.d(logTag, "*** setConnectionEventListener EVENT_RECONNECTING$i $any")
@@ -584,7 +584,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           if (i == Printer.EVENT_DISCONNECT) {
             Log.d(logTag, "*** setConnectionEventListener EVENT_DISCONNECT $i $any")
           }
-        })
+        }
         
         mPrinter!!.setStatusChangeEventListener { printer, i ->
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
