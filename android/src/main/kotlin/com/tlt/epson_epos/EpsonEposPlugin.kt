@@ -74,7 +74,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var context: Context
   private lateinit var activity: Activity
   private var mPrinter: Printer? = null
-  private var mPrinterStatus: String = "Unknow"
+  private var mPrinterStatus: PrinterStatusInfo?
   private var mTarget: String? = null
   private var printers: MutableList<EpsonEposPrinterInfo> = ArrayList()
   private var streamHandler: FlutterStreamHandler? = null
