@@ -329,8 +329,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       GlobalScope.launch(Dispatchers.IO) {
-        if(mPrinter != null) {
-          val statusInfo: PrinterStatusInfo? = mPrinter!!.status
+        if (mPrinter != null) {
+          val statusInfo: PrinterStatusInfo? = async { mPrinter!!.status }.await()
           
           if (statusInfo?.online == Printer.TRUE) {
             resp.success = true
@@ -585,7 +585,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     while (true) {
       try {
-        if(mPrinter != null) {
+        if (mPrinter != null) {
           mPrinter!!.disconnect()
           mPrinter = null
           mTarget = null
@@ -593,7 +593,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         break
       } catch (e: Exception) {
         Log.e(logTag, "disconnectPrinter Error ${e.message}", e)
-        if(mPrinter != null){
+        if (mPrinter != null) {
           mPrinter!!.clearCommandBuffer()
         }
         throw e
