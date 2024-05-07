@@ -588,10 +588,13 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         mPrinter!!.disconnect()
         mPrinter = null
         mTarget = null
+        mPrinterStatus = null
         break
       } catch (e: Exception) {
-        Log.e(logTag, "disconnectPrinter Error ${e?.message}", e)
-        mPrinter!!.clearCommandBuffer()
+        Log.e(logTag, "disconnectPrinter Error ${e.message}", e)
+        if(mPrinter != null){
+          mPrinter!!.clearCommandBuffer()
+        }
         throw e
       }
     }
