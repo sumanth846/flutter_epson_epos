@@ -532,7 +532,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
-      Log.d(logTag, "**** new connectPrinter PrinterStatusInfo ${getTimstamp()}")
+      Log.d(logTag, "**** coroutineScope start ${getTimstamp()}")
       coroutineScope.launch {
         try {
           Log.d(logTag, "**** connectPrinter PrinterStatusInfo ${getTimstamp()}")
@@ -562,6 +562,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           Log.e(logTag, "Error occurred: ${e.message}")
         }
       }
+      Log.d(logTag, "**** coroutineScope END ${getTimstamp()}")
     } catch (e: Epos2Exception) {
       disconnectPrinter()
       Log.e(logTag, "Connect Error ${e.errorStatus}", e)
