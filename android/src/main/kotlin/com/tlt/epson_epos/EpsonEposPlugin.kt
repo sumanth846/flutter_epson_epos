@@ -564,13 +564,9 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     try {
-      
       if (mPrinterStatus == null || mPrinterStatus?.online != Printer.TRUE) {
-        Log.d(logTag, "*** mPrinterStatus if inside")
-        
         mPrinter!!.setStatusChangeEventListener { printer, i ->
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
-          
           try {
             mPrinterStatus = printer.status
           } catch (e: Exception) {
@@ -578,13 +574,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             Log.e(logTag, "Error setStatusChangeEventListener ${e.message}")
           }
         }
-        
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
-        
         val job = coroutineScope.launch {
           mPrinterStatus = withContext(Dispatchers.IO) {
             mPrinter!!.startMonitor()
-            
             mPrinter!!.status
           }
           
