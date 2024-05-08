@@ -366,7 +366,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       resp.message = "Print error"
      
     } finally {
-      Log.d(logTag, "getPrinterStatus finally")]
+      Log.d(logTag, "getPrinterStatus finally")
       result.success(resp.toJSON())
     }
   }
