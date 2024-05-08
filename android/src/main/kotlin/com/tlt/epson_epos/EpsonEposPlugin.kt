@@ -348,9 +348,12 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         Log.d(logTag, resp.toJSON())
         result.success(resp.toJSON())
       } else {
-        resp.success = false
-        resp.message = "Printer connecting"
-        result.success(resp.toJSON())
+        
+        if (!connectPrinter(target, series)) {
+          resp.success = false
+          resp.message = "Printer connecting"
+          result.success(resp.toJSON())
+        }
       }
     } catch (e: Exception) {
       e.printStackTrace()
@@ -484,8 +487,8 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           var isError = printerStatusError()
           Log.d(logTag, "Status : $isError")
           if (!isError.trim().lowercase().equals("online".trim().lowercase())) {
-           
-            if(mPrinter != null) {
+            
+            if (mPrinter != null) {
               mPrinterStatus = mPrinter!!.status
               isError = printerStatusError()
             }
