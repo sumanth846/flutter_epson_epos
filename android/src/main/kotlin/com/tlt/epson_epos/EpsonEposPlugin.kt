@@ -538,8 +538,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           try {
 //            mPrinterStatus = printer.status
             val job = coroutineScope.launch {
-              mPrinterStatus = mPrinter!!.status
-              Log.d(logTag, "*** coroutineScope mPrinterStatus $mPrinterStatus $i")
+              if(mPrinter != null) {
+                mPrinterStatus = mPrinter!!.status
+                Log.d(logTag, "*** coroutineScope mPrinterStatus $mPrinterStatus $i")
+              }
             }
             
             GlobalScope.launch {
