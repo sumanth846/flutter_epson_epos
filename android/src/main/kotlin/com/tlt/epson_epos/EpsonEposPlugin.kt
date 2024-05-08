@@ -341,26 +341,32 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         if (mPrinterStatus?.online == Printer.TRUE) {
           resp.success = true
           resp.message = "online"
+          Log.d(logTag, "getPrinterStatus online ${resp.message}")
         } else if (mPrinterStatus != null) {
+          Log.d(logTag, "getPrinterStatus mPrinterStatus != null start")
           resp.success = false
           resp.message = printerStatusError()
-        }else{
+          Log.d(logTag, "getPrinterStatus mPrinterStatus != null end ${resp.message}")
+        } else {
+          Log.d(logTag, "getPrinterStatus mPrinterStatus != null else")
           resp.success = false
           resp.message = printerStatusError()
+          Log.d(logTag, "getPrinterStatus mPrinterStatus != null else end")
         }
         Log.d(logTag, resp.toJSON())
-        result.success(resp.toJSON())
       } else {
         if (!connectPrinter(target, series)) {
           resp.success = false
           resp.message = "Printer connecting"
-          result.success(resp.toJSON())
         }
       }
     } catch (e: Exception) {
       e.printStackTrace()
       resp.success = false
       resp.message = "Print error"
+     
+    } finally {
+      Log.d(logTag, "getPrinterStatus finally")]
       result.success(resp.toJSON())
     }
   }
