@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import com.epson.epos2.Epos2Exception;
 import com.epson.epos2.discovery.Discovery;
 import com.epson.epos2.discovery.DiscoveryListener;
+import com.epson.epos2.discovery.DeviceInfo;
 import com.epson.epos2.discovery.FilterOption;
 import com.epson.epos2.printer.Printer;
 import com.epson.epos2.printer.PrinterStatusInfo;
@@ -26,13 +27,20 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.EventChannel.EventSink
+import io.flutter.plugin.common.EventChannel.StreamHandler
 import java.lang.Exception
 import kotlin.collections.ArrayList
 import android.util.Base64
+import com.epson.epos2.ConnectionListener
+import com.epson.epos2.printer.PrinterInformationListener
+import com.epson.epos2.printer.StatusChangeListener
 
 import java.lang.StringBuilder
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.*
 
@@ -191,7 +199,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     streamHandler?.sendEvent(data)
   }
   
-  
   /**
    * Stop discovery printer
    */
@@ -227,7 +234,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       else -> result.notImplemented()
     }
   }
-  
   
   private fun onDiscoveryBLUETOOTH(@NonNull call: MethodCall, @NonNull result: Result) {
     printers.clear()
@@ -278,7 +284,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
   }
   
-  
   /**
    * Discovery Printers via USB
    */
@@ -312,7 +317,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   private fun isPrinterConnected(@NonNull call: MethodCall, @NonNull result: Result) {
     Log.d(logTag, "isPrinterConnected $call $result")
   }
-  
   
   private fun getPrinterStatus(@NonNull call: MethodCall, @NonNull result: Result) {
     Log.d(logTag, "getPrinterStatus $call $result")
@@ -509,48 +513,6 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       result.success(resp.toJSON())
     } finally {
       Log.d(logTag, "**** onPrint END ${getTimstamp()}")
-    }
-  }
-  
-  private val mDiscoveryListener = DiscoveryListener { deviceInfo ->
-    Log.d(logTag, "Found: ${deviceInfo?.deviceName}, ${deviceInfo?.target}, ${deviceInfo}")
-    if (deviceInfo?.deviceName != null && deviceInfo?.deviceName != "") {
-      var printer = EpsonEposPrinterInfo(
-        deviceInfo.ipAddress,
-        deviceInfo.bdAddress,
-        deviceInfo.macAddress,
-        deviceInfo.deviceName,
-        deviceInfo.deviceType.toString(),
-        deviceInfo.deviceType.toString(),
-        deviceInfo.target
-      )
-      var printerIndex = printers.indexOfFirst { e -> e?.ipAddress == deviceInfo?.ipAddress }
-      if (printerIndex > -1) {
-        printers[printerIndex] = printer
-      } else {
-        printers.add(printer)
-      }
-    }
-    
-  }
-  
-  private val mPrinterSettingListener = object : PrinterSettingListener {
-    override fun onGetPrinterSetting(p0: Int, p1: Int, p2: Int) {
-      try {
-        Log.e("logTag", "onGetPrinterSetting type: $p0 $p1 $p2")
-        sendEvent("onGetPrinterSetting type: $p0 $p1 $p2")
-      } catch (e: Exception) {
-        Log.e(logTag, "onGetPrinterSetting Error ${e?.message}", e)
-      }
-    }
-    
-    override fun onSetPrinterSetting(p0: Int) {
-      try {
-        Log.e("logTag", "onSetPrinterSetting Code: $p0")
-        sendEvent("onSetPrinterSetting Code: $p0")
-      } catch (e: Exception) {
-        Log.e(logTag, "onSetPrinterSetting Error ${e?.message}", e)
-      }
     }
   }
   
@@ -1000,7 +962,47 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     return errorMes
   }
   
+  private val mDiscoveryListener = DiscoveryListener { deviceInfo ->
+    Log.d(logTag, "Found: ${deviceInfo?.deviceName}, ${deviceInfo?.target}, ${deviceInfo}")
+    if (deviceInfo?.deviceName != null && deviceInfo?.deviceName != "") {
+      var printer = EpsonEposPrinterInfo(
+        deviceInfo.ipAddress,
+        deviceInfo.bdAddress,
+        deviceInfo.macAddress,
+        deviceInfo.deviceName,
+        deviceInfo.deviceType.toString(),
+        deviceInfo.deviceType.toString(),
+        deviceInfo.target
+      )
+      var printerIndex = printers.indexOfFirst { e -> e?.ipAddress == deviceInfo?.ipAddress }
+      if (printerIndex > -1) {
+        printers[printerIndex] = printer
+      } else {
+        printers.add(printer)
+      }
+    }
+    
+  }
   
+  private val mPrinterSettingListener = object : PrinterSettingListener {
+    override fun onGetPrinterSetting(p0: Int, p1: Int, p2: Int) {
+      try {
+        Log.e("logTag", "onGetPrinterSetting type: $p0 $p1 $p2")
+        sendEvent("onGetPrinterSetting type: $p0 $p1 $p2")
+      } catch (e: Exception) {
+        Log.e(logTag, "onGetPrinterSetting Error ${e?.message}", e)
+      }
+    }
+    
+    override fun onSetPrinterSetting(p0: Int) {
+      try {
+        Log.e("logTag", "onSetPrinterSetting Code: $p0")
+        sendEvent("onSetPrinterSetting Code: $p0")
+      } catch (e: Exception) {
+        Log.e(logTag, "onSetPrinterSetting Error ${e?.message}", e)
+      }
+    }
+  }
 }
 
 
