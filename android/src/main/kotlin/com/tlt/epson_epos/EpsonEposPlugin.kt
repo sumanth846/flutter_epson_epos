@@ -329,30 +329,25 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       if (mPrinter != null) {
-//        val job = coroutineScope.launch {
-//          mPrinterStatus = mPrinter!!.status
-//        }
-//
-//        GlobalScope.launch {
-//          job.join()
-//        }
-        Log.d(logTag, "mPrinterStatus start")
+        val job = coroutineScope.launch {
+          mPrinterStatus = mPrinter!!.status
+        }
+
+        GlobalScope.launch {
+          job.join()
+        }
+
         
-        mPrinterStatus = mPrinter!!.status
+//        mPrinterStatus = mPrinter!!.status
         if (mPrinterStatus?.online == Printer.TRUE) {
           resp.success = true
           resp.message = "online"
-          Log.d(logTag, "getPrinterStatus online ${resp.message}")
         } else if (mPrinterStatus != null) {
-          Log.d(logTag, "getPrinterStatus mPrinterStatus != null start")
           resp.success = false
           resp.message = printerStatusError()
-          Log.d(logTag, "getPrinterStatus mPrinterStatus != null end ${resp.message}")
         } else {
-          Log.d(logTag, "getPrinterStatus mPrinterStatus != null else")
           resp.success = false
           resp.message = printerStatusError()
-          Log.d(logTag, "getPrinterStatus mPrinterStatus != null else end")
         }
         Log.d(logTag, resp.toJSON())
       } else {
@@ -496,12 +491,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           var isError = printerStatusError()
           Log.d(logTag, "Status : $isError")
           if (!isError.trim().lowercase().equals("online".trim().lowercase())) {
-            
             if (mPrinter != null) {
               mPrinterStatus = mPrinter!!.status
               isError = printerStatusError()
             }
-            
             if (!isError.trim().lowercase().equals("online".trim().lowercase())) {
               resp.success = false
               resp.message = isError
