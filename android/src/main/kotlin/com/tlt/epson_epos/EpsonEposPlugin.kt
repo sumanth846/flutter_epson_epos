@@ -329,15 +329,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     
     try {
       if (mPrinter != null) {
-        val job = coroutineScope.launch {
-          mPrinterStatus = mPrinter!!.status
-        }
-
-        GlobalScope.launch {
-          job.join()
-        }
-
-        
+      
 //        mPrinterStatus = mPrinter!!.status
         if (mPrinterStatus?.online == Printer.TRUE) {
           resp.success = true
@@ -545,6 +537,15 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
           try {
 //            mPrinterStatus = printer.status
+            val job = coroutineScope.launch {
+              mPrinterStatus = mPrinter!!.status
+              Log.d(logTag, "*** coroutineScope mPrinterStatus $mPrinterStatus $i")
+            }
+            
+            GlobalScope.launch {
+              job.join()
+            }
+            
           } catch (e: Exception) {
             e.printStackTrace()
             Log.e(logTag, "Error setStatusChangeEventListener ${e.message}")
