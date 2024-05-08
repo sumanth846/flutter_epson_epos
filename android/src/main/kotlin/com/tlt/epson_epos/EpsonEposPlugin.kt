@@ -485,16 +485,23 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           
           Log.d(logTag, "Status : $isError")
           if (!isError.trim().lowercase().equals("online".trim().lowercase())) {
-            resp.success = false
-            resp.message = isError
-            Log.d(logTag, resp.toJSON())
-          } else {
-            mPrinter!!.sendData(Printer.PARAM_DEFAULT)
-            Log.d(logTag, "Printed $target $series")
-            resp.success = true
-            resp.message = "Printed $target $series | online"
-            Log.d(logTag, resp.toJSON())
+           
+            mPrinterStatus = mPrinter.status
+            isError = printerStatusError()
+            
+            if (!isError.trim().lowercase().equals("online".trim().lowercase())) {
+              resp.success = false
+              resp.message = isError
+              Log.d(logTag, resp.toJSON())
+              return
+            }
           }
+          
+          mPrinter!!.sendData(Printer.PARAM_DEFAULT)
+          Log.d(logTag, "Printed $target $series")
+          resp.success = true
+          resp.message = "Printed $target $series | online"
+          Log.d(logTag, resp.toJSON())
           
           result.success(resp.toJSON());
         } catch (ex: Epos2Exception) {
