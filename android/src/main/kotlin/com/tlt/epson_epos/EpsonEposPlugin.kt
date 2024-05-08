@@ -344,11 +344,13 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         } else if (mPrinterStatus != null) {
           resp.success = false
           resp.message = printerStatusError()
+        }else{
+          resp.success = false
+          resp.message = printerStatusError()
         }
         Log.d(logTag, resp.toJSON())
         result.success(resp.toJSON())
       } else {
-        
         if (!connectPrinter(target, series)) {
           resp.success = false
           resp.message = "Printer connecting"
