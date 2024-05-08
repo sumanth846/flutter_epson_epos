@@ -13,7 +13,6 @@ import com.google.gson.Gson
 import com.epson.epos2.Epos2Exception;
 import com.epson.epos2.discovery.Discovery;
 import com.epson.epos2.discovery.DiscoveryListener;
-import com.epson.epos2.discovery.DeviceInfo;
 import com.epson.epos2.discovery.FilterOption;
 import com.epson.epos2.printer.Printer;
 import com.epson.epos2.printer.PrinterStatusInfo;
@@ -27,20 +26,13 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.EventChannel.EventSink
-import io.flutter.plugin.common.EventChannel.StreamHandler
 import java.lang.Exception
 import kotlin.collections.ArrayList
 import android.util.Base64
-import com.epson.epos2.ConnectionListener
-import com.epson.epos2.printer.PrinterInformationListener
-import com.epson.epos2.printer.StatusChangeListener
 
 import java.lang.StringBuilder
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.*
 
@@ -341,11 +333,11 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 //          job.join()
 //        }
         
-        val statusInfo: PrinterStatusInfo? = mPrinter!!.status
-        if (statusInfo?.online == Printer.TRUE) {
+        mPrinterStatus = mPrinter!!.status
+        if (mPrinterStatus?.online == Printer.TRUE) {
           resp.success = true
           resp.message = "online"
-        } else if (statusInfo != null) {
+        } else if (mPrinterStatus != null) {
           resp.success = false
           resp.message = printerStatusError()
         }
@@ -584,7 +576,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         
         mPrinter!!.connect(target, Printer.PARAM_DEFAULT)
         
-        coroutineScope.launch {
+        val job = coroutineScope.launch {
           mPrinterStatus = withContext(Dispatchers.IO) {
             mPrinter!!.startMonitor()
             
@@ -594,6 +586,10 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
           withContext(Dispatchers.Main) {
             mPrinterStatus = mPrinterStatus
           }
+        }
+        
+        GlobalScope.launch {
+          job.join()
         }
       }
       
