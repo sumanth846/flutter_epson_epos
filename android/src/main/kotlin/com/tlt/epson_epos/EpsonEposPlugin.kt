@@ -336,6 +336,7 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 //        GlobalScope.launch {
 //          job.join()
 //        }
+        Log.d(logTag, "mPrinterStatus start")
         
         mPrinterStatus = mPrinter!!.status
         if (mPrinterStatus?.online == Printer.TRUE) {
@@ -537,19 +538,20 @@ class EpsonEposPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   
   private fun connectPrinter(target: String, series: String): Boolean {
     Log.d(logTag, "**** connectPrinter ${getTimstamp()}")
-    
-    val printCons = getPrinterConstant(series)
+  
     if (mPrinter == null || mTarget != target) {
+      val printCons = getPrinterConstant(series)
       mPrinter = Printer(printCons, 0, context)
       mTarget = target
+      Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
     }
-    Log.d(logTag, "Connect Printer w $series constant: $printCons via $target")
+    
     try {
       if (mPrinterStatus == null || mPrinterStatus?.online != Printer.TRUE) {
         mPrinter!!.setStatusChangeEventListener { printer, i ->
           Log.d(logTag, "*** setStatusChangeEventListener $printer $i")
           try {
-            mPrinterStatus = printer.status
+//            mPrinterStatus = printer.status
           } catch (e: Exception) {
             e.printStackTrace()
             Log.e(logTag, "Error setStatusChangeEventListener ${e.message}")
